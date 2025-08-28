@@ -10,6 +10,7 @@ use App\Http\Requests\StorePartyDetailRequest;
 use App\Http\Requests\UpdatePartyDetailRequest;
 use App\Models\PartyDetail;
 use Gate;
+use Illuminate\Support\Facades\Auth;
 use Illuminate\Http\Request;
 use Spatie\MediaLibrary\MediaCollections\Models\Media;
 use Symfony\Component\HttpFoundation\Response;
@@ -34,17 +35,23 @@ class PartyDetailsController extends Controller
         return view('admin.partyDetails.create');
     }
 
-    public function store(StorePartyDetailRequest $request)
-    {
-        $partyDetail = PartyDetail::create($request->all());
 
-        if ($media = $request->input('ck-media', false)) {
-            Media::whereIn('id', $media)->update(['model_id' => $partyDetail->id]);
-        }
+public function store(StorePartyDetailRequest $request)
+{
+    // Logged-in user ka ID lete hain
+    $data = $request->all();
+    $data['created_by_id'] = Auth::id(); // Yaha set kar rahe hain
 
-        return redirect()->route('admin.party-details.index');
+    $partyDetail = PartyDetail::create($data);
+
+    // Media update karna hai toh ye code rahega
+    if ($media = $request->input('ck-media', false)) {
+        Media::whereIn('id', $media)->update(['model_id' => $partyDetail->id]);
     }
 
+    return redirect()->route('admin.party-details.index')
+                     ->with('success', 'Party Detail created successfully!');
+}
     public function edit(PartyDetail $partyDetail)
     {
         abort_if(Gate::denies('party_detail_edit'), Response::HTTP_FORBIDDEN, '403 Forbidden');
