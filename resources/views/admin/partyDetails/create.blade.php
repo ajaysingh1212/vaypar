@@ -48,7 +48,7 @@
           </div>
           <div class="text-right small-muted">Step <span id="currentStep">1</span> of 4</div>
         </div>
-
+        
         <div class="panel-body">
 
           <form method="POST" action="{{ route("admin.party-details.store") }}" enctype="multipart/form-data" id="partyForm">
