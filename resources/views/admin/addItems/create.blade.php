@@ -1,192 +1,187 @@
 @extends('layouts.admin')
-@section('content')
-<div class="content">
 
-    <div class="row">
-        <div class="col-lg-12">
-            <div class="panel panel-default">
-                <div class="panel-heading">
-                    {{ trans('global.create') }} {{ trans('cruds.addItem.title_singular') }}
+@section('content')
+<div class="max-w-6xl mx-auto py-8">
+
+    <div class="bg-white rounded-lg shadow">
+        <!-- Header -->
+        <div class="flex items-center justify-between border-b px-6 py-4">
+            <h2 class="text-xl font-semibold text-gray-800">Add Item</h2>
+            <div class="flex items-center space-x-4">
+                <div class="flex items-center space-x-3">
+    <!-- Label: Product -->
+    <span class="text-sm font-medium text-gray-600">Product</span>
+
+    <!-- Switch -->
+    <label class="relative inline-flex items-center cursor-pointer">
+        <input type="checkbox" id="switchType" class="sr-only peer">
+        <div class="w-11 h-6 bg-gray-200 rounded-full peer peer-checked:bg-indigo-600 transition-colors"></div>
+        <div class="absolute left-1 top-1 w-4 h-4 bg-white rounded-full transition-transform peer-checked:translate-x-5"></div>
+    </label>
+
+    <!-- Label: Service -->
+    <span class="text-sm font-medium text-gray-600">Service</span>
+</div>
+
+
+<script>
+    const switchInput = document.getElementById("switchType");
+    const switchValue = document.getElementById("switchValue");
+
+    switchInput.addEventListener("change", () => {
+        switchValue.textContent = switchInput.checked ? "Service" : "Product";
+    });
+</script>
+
+            </div>
+        </div>
+
+        <!-- Form -->
+        <form method="POST" action="{{ route('admin.add-items.store') }}" enctype="multipart/form-data" class="p-6">
+            @csrf
+
+            <!-- Top Fields -->
+            <div class="grid grid-cols-1 md:grid-cols-4 gap-4 mb-6">
+                <div class="md:col-span-2">
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Item Name *</label>
+                    <input type="text" name="item_name" value="{{ old('item_name') }}"
+                           class="w-full rounded-md border border-gray-300 px-4 py-2 shadow-sm focus:border-indigo-500 
+                                  focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
                 </div>
-                <div class="panel-body">
-                    <form method="POST" action="{{ route("admin.add-items.store") }}" enctype="multipart/form-data">
-                        @csrf
-                        <div class="form-group {{ $errors->has('item_type') ? 'has-error' : '' }}">
-                            <label>{{ trans('cruds.addItem.fields.item_type') }}</label>
-                            <select class="form-control" name="item_type" id="item_type">
-                                <option value disabled {{ old('item_type', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
-                                @foreach(App\Models\AddItem::ITEM_TYPE_SELECT as $key => $label)
-                                    <option value="{{ $key }}" {{ old('item_type', '--select type--') === (string) $key ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('item_type'))
-                                <span class="help-block" role="alert">{{ $errors->first('item_type') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.item_type_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('item_name') ? 'has-error' : '' }}">
-                            <label class="required" for="item_name">{{ trans('cruds.addItem.fields.item_name') }}</label>
-                            <input class="form-control" type="text" name="item_name" id="item_name" value="{{ old('item_name', '') }}" required>
-                            @if($errors->has('item_name'))
-                                <span class="help-block" role="alert">{{ $errors->first('item_name') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.item_name_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('item_hsn') ? 'has-error' : '' }}">
-                            <label class="required" for="item_hsn">{{ trans('cruds.addItem.fields.item_hsn') }}</label>
-                            <input class="form-control" type="text" name="item_hsn" id="item_hsn" value="{{ old('item_hsn', '') }}" required>
-                            @if($errors->has('item_hsn'))
-                                <span class="help-block" role="alert">{{ $errors->first('item_hsn') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.item_hsn_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('select_unit') ? 'has-error' : '' }}">
-                            <label for="select_unit_id">{{ trans('cruds.addItem.fields.select_unit') }}</label>
-                            <select class="form-control select2" name="select_unit_id" id="select_unit_id">
-                                @foreach($select_units as $id => $entry)
-                                    <option value="{{ $id }}" {{ old('select_unit_id') == $id ? 'selected' : '' }}>{{ $entry }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('select_unit'))
-                                <span class="help-block" role="alert">{{ $errors->first('select_unit') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.select_unit_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('select_categories') ? 'has-error' : '' }}">
-                            <label for="select_categories">{{ trans('cruds.addItem.fields.select_category') }}</label>
-                            <div style="padding-bottom: 4px">
-                                <span class="btn btn-info btn-xs select-all" style="border-radius: 0">{{ trans('global.select_all') }}</span>
-                                <span class="btn btn-info btn-xs deselect-all" style="border-radius: 0">{{ trans('global.deselect_all') }}</span>
-                            </div>
-                            <select class="form-control select2" name="select_categories[]" id="select_categories" multiple>
-                                @foreach($select_categories as $id => $select_category)
-                                    <option value="{{ $id }}" {{ in_array($id, old('select_categories', [])) ? 'selected' : '' }}>{{ $select_category }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('select_categories'))
-                                <span class="help-block" role="alert">{{ $errors->first('select_categories') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.select_category_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('item_code') ? 'has-error' : '' }}">
-                            <label class="required" for="item_code">{{ trans('cruds.addItem.fields.item_code') }}</label>
-                            <input class="form-control" type="text" name="item_code" id="item_code" value="{{ old('item_code', '') }}" required>
-                            @if($errors->has('item_code'))
-                                <span class="help-block" role="alert">{{ $errors->first('item_code') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.item_code_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('sale_price') ? 'has-error' : '' }}">
-                            <label class="required" for="sale_price">{{ trans('cruds.addItem.fields.sale_price') }}</label>
-                            <input class="form-control" type="text" name="sale_price" id="sale_price" value="{{ old('sale_price', '') }}" required>
-                            @if($errors->has('sale_price'))
-                                <span class="help-block" role="alert">{{ $errors->first('sale_price') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.sale_price_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('select_type') ? 'has-error' : '' }}">
-                            <label>{{ trans('cruds.addItem.fields.select_type') }}</label>
-                            <select class="form-control" name="select_type" id="select_type">
-                                <option value disabled {{ old('select_type', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
-                                @foreach(App\Models\AddItem::SELECT_TYPE_SELECT as $key => $label)
-                                    <option value="{{ $key }}" {{ old('select_type', '--select type--') === (string) $key ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('select_type'))
-                                <span class="help-block" role="alert">{{ $errors->first('select_type') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.select_type_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('disc_on_sale_price') ? 'has-error' : '' }}">
-                            <label for="disc_on_sale_price">{{ trans('cruds.addItem.fields.disc_on_sale_price') }}</label>
-                            <input class="form-control" type="text" name="disc_on_sale_price" id="disc_on_sale_price" value="{{ old('disc_on_sale_price', '') }}">
-                            @if($errors->has('disc_on_sale_price'))
-                                <span class="help-block" role="alert">{{ $errors->first('disc_on_sale_price') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.disc_on_sale_price_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('disc_type') ? 'has-error' : '' }}">
-                            <label for="disc_type">{{ trans('cruds.addItem.fields.disc_type') }}</label>
-                            <input class="form-control" type="text" name="disc_type" id="disc_type" value="{{ old('disc_type', '') }}">
-                            @if($errors->has('disc_type'))
-                                <span class="help-block" role="alert">{{ $errors->first('disc_type') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.disc_type_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('wholesale_price') ? 'has-error' : '' }}">
-                            <label for="wholesale_price">{{ trans('cruds.addItem.fields.wholesale_price') }}</label>
-                            <input class="form-control" type="text" name="wholesale_price" id="wholesale_price" value="{{ old('wholesale_price', '') }}">
-                            @if($errors->has('wholesale_price'))
-                                <span class="help-block" role="alert">{{ $errors->first('wholesale_price') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.wholesale_price_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('select_type_wholesale') ? 'has-error' : '' }}">
-                            <label>{{ trans('cruds.addItem.fields.select_type_wholesale') }}</label>
-                            <select class="form-control" name="select_type_wholesale" id="select_type_wholesale">
-                                <option value disabled {{ old('select_type_wholesale', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
-                                @foreach(App\Models\AddItem::SELECT_TYPE_WHOLESALE_SELECT as $key => $label)
-                                    <option value="{{ $key }}" {{ old('select_type_wholesale', '--select type--') === (string) $key ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('select_type_wholesale'))
-                                <span class="help-block" role="alert">{{ $errors->first('select_type_wholesale') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.select_type_wholesale_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('minimum_wholesale_qty') ? 'has-error' : '' }}">
-                            <label for="minimum_wholesale_qty">{{ trans('cruds.addItem.fields.minimum_wholesale_qty') }}</label>
-                            <input class="form-control" type="text" name="minimum_wholesale_qty" id="minimum_wholesale_qty" value="{{ old('minimum_wholesale_qty', '') }}">
-                            @if($errors->has('minimum_wholesale_qty'))
-                                <span class="help-block" role="alert">{{ $errors->first('minimum_wholesale_qty') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.minimum_wholesale_qty_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('purchase_price') ? 'has-error' : '' }}">
-                            <label for="purchase_price">{{ trans('cruds.addItem.fields.purchase_price') }}</label>
-                            <input class="form-control" type="text" name="purchase_price" id="purchase_price" value="{{ old('purchase_price', '') }}">
-                            @if($errors->has('purchase_price'))
-                                <span class="help-block" role="alert">{{ $errors->first('purchase_price') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.purchase_price_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('select_purchase_type') ? 'has-error' : '' }}">
-                            <label>{{ trans('cruds.addItem.fields.select_purchase_type') }}</label>
-                            <select class="form-control" name="select_purchase_type" id="select_purchase_type">
-                                <option value disabled {{ old('select_purchase_type', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
-                                @foreach(App\Models\AddItem::SELECT_PURCHASE_TYPE_SELECT as $key => $label)
-                                    <option value="{{ $key }}" {{ old('select_purchase_type', '--select type--') === (string) $key ? 'selected' : '' }}>{{ $label }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('select_purchase_type'))
-                                <span class="help-block" role="alert">{{ $errors->first('select_purchase_type') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.select_purchase_type_helper') }}</span>
-                        </div>
-                        <div class="form-group {{ $errors->has('select_tax') ? 'has-error' : '' }}">
-                            <label for="select_tax_id">{{ trans('cruds.addItem.fields.select_tax') }}</label>
-                            <select class="form-control select2" name="select_tax_id" id="select_tax_id">
-                                @foreach($select_taxes as $id => $entry)
-                                    <option value="{{ $id }}" {{ old('select_tax_id') == $id ? 'selected' : '' }}>{{ $entry }}</option>
-                                @endforeach
-                            </select>
-                            @if($errors->has('select_tax'))
-                                <span class="help-block" role="alert">{{ $errors->first('select_tax') }}</span>
-                            @endif
-                            <span class="help-block">{{ trans('cruds.addItem.fields.select_tax_helper') }}</span>
-                        </div>
-                        <div class="form-group">
-                            <button class="btn btn-danger" type="submit">
-                                {{ trans('global.save') }}
-                            </button>
-                        </div>
-                    </form>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Item HSN</label>
+                    <input type="text" name="item_hsn" value="{{ old('item_hsn') }}"
+                           class="w-full rounded-md border border-gray-300 px-4 py-2 shadow-sm focus:border-indigo-500 
+                                  focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                </div>
+                <div class="flex items-end">
+                    <button type="button" class="w-full px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md font-medium">
+                        Select Unit
+                    </button>
                 </div>
             </div>
 
+            <div class="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6">
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Category</label>
+                    <select name="select_category" id="select_category"
+                            class="w-full rounded-md border border-gray-300 px-4 py-2 shadow-sm focus:border-indigo-500 
+                                   focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        <option value="">-- Select --</option>
+                        @foreach($select_categories as $id => $entry)
+                            <option value="{{ $id }}" {{ old('select_category') == $id ? 'selected' : '' }}>
+                                {{ $entry }}
+                            </option>
+                        @endforeach
+                    </select>
+                </div>
+                <div>
+                    <label class="block text-sm font-medium text-gray-700 mb-1">Item Code</label>
+                    <div class="flex space-x-2">
+                        <input type="text" name="item_code" value="{{ old('item_code') }}"
+                               class="flex-1 rounded-md border border-gray-300 px-4 py-2 shadow-sm focus:border-indigo-500 
+                                      focus:ring focus:ring-indigo-200 focus:ring-opacity-50">
+                        <button type="button" class="px-4 py-2 bg-indigo-100 text-indigo-700 rounded-md font-medium">
+                            Assign Code
+                        </button>
+                    </div>
+                </div>
+                <div class="flex items-end">
+                    <button type="button" class="w-full px-4 py-2 border border-indigo-500 text-indigo-600 rounded-md hover:bg-indigo-50">
+                        + Add Item Image
+                    </button>
+                </div>
+            </div>
 
+          <!-- Tabs -->
+<div class="border-b mb-6" x-data="{ tab: 'pricing' }">
+    <nav class="flex space-x-6" aria-label="Tabs">
+        <button type="button"
+                @click="tab = 'pricing'"
+                :class="tab === 'pricing' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="py-3 px-1 border-b-2 font-medium text-sm">
+            Pricing
+        </button>
+        <button type="button"
+                @click="tab = 'stock'"
+                :class="tab === 'stock' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="py-3 px-1 border-b-2 font-medium text-sm">
+            Stock
+        </button>
+        <button type="button"
+                @click="tab = 'online'"
+                :class="tab === 'online' ? 'border-indigo-600 text-indigo-600' : 'border-transparent text-gray-500 hover:text-gray-700'"
+                class="py-3 px-1 border-b-2 font-medium text-sm">
+            Online Store
+        </button>
+    </nav>
 
+    <!-- Pricing Section -->
+    <div x-show="tab === 'pricing'" class="bg-gray-50 rounded-lg p-4 mb-6">
+        <h3 class="text-md font-semibold text-gray-700 mb-3">Sale Price</h3>
+        <div class="grid grid-cols-1 md:grid-cols-4 gap-4">
+            <input type="text" name="sale_price" placeholder="Sale Price"
+                   class="w-full rounded-md border border-gray-300 px-4 py-2">
+            <select name="select_type"
+                    class="w-full rounded-md border border-gray-300 px-4 py-2">
+                <option value="without_tax">Without Tax</option>
+                <option value="with_tax">With Tax</option>
+            </select>
+            <input type="text" name="disc_on_sale_price" placeholder="Disc. On Sale Price"
+                   class="w-full rounded-md border border-gray-300 px-4 py-2">
+            <select name="disc_type"
+                    class="w-full rounded-md border border-gray-300 px-4 py-2">
+                <option value="percentage">Percentage</option>
+                <option value="flat">Flat</option>
+            </select>
         </div>
+        <div class="mt-3">
+            <button type="button" class="text-indigo-600 text-sm font-medium hover:underline">
+                + Add Wholesale Price
+            </button>
+        </div>
+    </div>
+
+    <!-- Stock Section -->
+    <div x-show="tab === 'stock'" class="bg-gray-50 rounded-lg p-4 mb-6">
+        <h3 class="text-md font-semibold text-gray-700 mb-3">Stock Details</h3>
+        <div class="grid grid-cols-1 md:grid-cols-3 gap-4">
+            <input type="text" placeholder="Opening Stock"
+                   class="w-full rounded-md border border-gray-300 px-4 py-2">
+            <input type="text" placeholder="Low Stock Warning"
+                   class="w-full rounded-md border border-gray-300 px-4 py-2">
+            <input type="text" placeholder="Warehouse Location"
+                   class="w-full rounded-md border border-gray-300 px-4 py-2">
+        </div>
+    </div>
+
+    <!-- Online Store Section -->
+    <div x-show="tab === 'online'" class="bg-gray-50 rounded-lg p-4 mb-6">
+        <h3 class="text-md font-semibold text-gray-700 mb-3">Online Store Details</h3>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+            <input type="text" placeholder="Store Title"
+                   class="w-full rounded-md border border-gray-300 px-4 py-2">
+            <textarea placeholder="Store Description"
+                      class="w-full rounded-md border border-gray-300 px-4 py-2"></textarea>
+            <input type="file"
+                   class="w-full rounded-md border border-gray-300 px-4 py-2">
+        </div>
+    </div>
+</div>
+
+
+            <!-- Footer -->
+            <div class="flex justify-end space-x-3">
+                <button type="button"
+                        class="px-6 py-3 bg-gray-200 text-gray-700 rounded-md hover:bg-gray-300">
+                    Save & New
+                </button>
+                <button type="submit"
+                        class="px-6 py-3 bg-indigo-600 text-white rounded-md shadow hover:bg-indigo-700">
+                    Save
+                </button>
+            </div>
+        </form>
     </div>
 </div>
 @endsection
