@@ -1,561 +1,414 @@
-@extends('layouts.admin')
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Create Party Details</title>
+    <script src="https://cdn.jsdelivr.net/npm/alpinejs@3.x.x/dist/cdn.min.js" defer></script>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.4.0/css/all.min.css">
+    <style>
+        .required:after {
+            content: " *";
+            color: #e53e3e;
+        }
+        .step-indicator {
+            transition: all 0.3s ease;
+        }
+        input:focus, select:focus, textarea:focus {
+            outline: none;
+            ring: 2px;
+        }
+    </style>
+</head>
+<body class="bg-gray-100 min-h-screen">
+    <div class="max-w-5xl mx-auto py-6">
+        <div 
+            x-data="{
+                step: 1,
+                credit_limit: '{{ old('credit_limit', 'off') }}',
+                type_of_supply: '{{ old('type_of_supply', 'Intra-State') }}',
+                gst_type: '{{ old('gst_type', 'Unregistered_Consumer') }}',
+                opening_balance_type: '{{ old('opening_balance_type', 'Debit') }}',
+                status: '{{ old('status', 'enable') }}',
+                nextStep() {
+                    if(this.validateStep()) {
+                        this.step++;
+                        window.scrollTo(0, 0);
+                    }
+                },
+                prevStep() {
+                    this.step--;
+                    window.scrollTo(0, 0);
+                },
+                validateStep() {
+                    let valid = true;
+                    const stepEl = document.querySelector(`[x-show='step === ${this.step}']`);
+                    
+                    // Basic validation for required fields
+                    const requiredFields = stepEl.querySelectorAll('[required]');
+                    requiredFields.forEach(field => {
+                        if (!field.value.trim()) {
+                            field.classList.add('border-red-500');
+                            valid = false;
+                        } else {
+                            field.classList.remove('border-red-500');
+                        }
+                    });
+                    
+                    return valid;
+                }
+            }" 
+            class="bg-white rounded-2xl shadow-lg p-6"
+        >
 
-@section('styles')
-<style>
-/* Creative 4-step wizard styles */
-.wizard-card {
-  background: linear-gradient(135deg,#ffffff 0%, #f7f7ff 100%);
-  border-radius: 12px;
-  box-shadow: 0 8px 24px rgba(99, 102, 241, .08);
-  padding: 20px;
-  margin-bottom: 20px;
-}
-.wizard-header{
-  display:flex;align-items:center;justify-content:space-between;margin-bottom:15px;
-}
-.wizard-title{font-size:18px;font-weight:700;color:#2b2f6b}
-.wizard-sub{color:#6b6f99;font-size:13px}
-.stepper {
-  display:flex;gap:12px;align-items:center;margin:18px 0 28px;
-}
-.stepper .step-circle{
-  width:44px;height:44px;border-radius:50%;display:flex;align-items:center;justify-content:center;font-weight:700;color:#fff;background:#d1d5ff;
-  box-shadow: 0 4px 12px rgba(43,47,107,.08);
-}
-.stepper .step-circle.active{background:linear-gradient(90deg,#605ca8,#7b6ff2)}
-.stepper .step-label{font-size:13px;color:#333}
-.progress-line{height:6px;background:#e9e9ff;border-radius:8px;overflow:hidden;margin-top:10px}
-.progress-line > i{display:block;height:100%;background:linear-gradient(90deg,#605ca8,#7b6ff2);width:0%;transition:width .4s ease}
-.step{display:none}
-.step.active{display:block}
-.wizard-footer{display:flex;justify-content:space-between;align-items:center;margin-top:18px}
-.step-card{border-radius:8px;padding:15px;background:#fff;border:1px solid #f0f0ff}
-.small-muted{font-size:12px;color:#6b6f99}
-/* Responsive */
-@media (max-width:768px){.stepper{flex-direction:column;align-items:flex-start}.wizard-header{flex-direction:column;align-items:flex-start;gap:10px}}
-</style>
-@endsection
+            <!-- Header -->
+            <div class="flex flex-col md:flex-row md:items-center md:justify-between mb-6">
+                <div>
+                    <h2 class="text-xl font-bold text-indigo-800">
+                        Create Party Details
+                    </h2>
+                    <p class="text-sm text-gray-500">Complete the 4 steps to add party details — Basic, Address, Finance & Bank.</p>
+                </div>
+                <div class="mt-3 md:mt-0 text-sm text-gray-600">
+                    Step <span x-text="step"></span> of 4
+                </div>
+            </div>
 
-@section('content')
-<div class="content">
-  <div class="row">
-    <div class="col-lg-12">
-      <div class="panel panel-default wizard-card">
-        <div class="panel-heading wizard-header">
-          <div>
-            <div class="wizard-title">{{ trans('global.create') }} {{ trans('cruds.partyDetail.title_singular') }}</div>
-            <div class="wizard-sub">Complete the four steps to add a party detail — basic info, address, finance & bank.</div>
-          </div>
-          <div class="text-right small-muted">Step <span id="currentStep">1</span> of 4</div>
+            <!-- Stepper -->
+            <div class="flex items-center justify-between">
+                <template x-for="s in 4" :key="s">
+                    <div class="flex-1 flex items-center">
+                        <div 
+                            class="w-10 h-10 flex items-center justify-center rounded-full font-bold text-white step-indicator"
+                            :class="step >= s ? 'bg-gradient-to-r from-indigo-600 to-indigo-500' : 'bg-gray-300'"
+                        >
+                            <span x-text="s"></span>
+                        </div>
+                        <div class="flex-1 h-1 mx-2 rounded"
+                             :class="step > s ? 'bg-indigo-500' : 'bg-gray-200'"></div>
+                    </div>
+                </template>
+            </div>
+
+            <!-- Progress Bar -->
+            <div class="w-full bg-gray-200 rounded-full h-2 mt-4 mb-6">
+                <div class="bg-indigo-600 h-2 rounded-full transition-all" 
+                     :style="`width: ${(step-1)/3*100}%`"></div>
+            </div>
+
+            <form method="POST" action="{{ route('admin.party-details.store') }}" enctype="multipart/form-data" id="partyForm" class="space-y-6">
+                @csrf
+            <!-- STEP 1: Basic -->
+                <div x-show="step === 1" x-transition>
+                    <div class="p-6 border rounded-xl space-y-6 bg-gray-50">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">
+                            <i class="fas fa-info-circle mr-2 text-indigo-600"></i>
+                            Basic Information
+                        </h3>
+
+                        <div>
+                            <label for="party_name" class="block text-sm font-medium text-gray-700 required">
+                                Party Name
+                            </label>
+                            <input 
+                                type="text" 
+                                name="party_name" 
+                                id="party_name" 
+                                required
+                                class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                       focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1"
+                            >
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 required">GSTIN</label>
+                                <input type="text" name="gstin" id="gstin" required
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 required">Phone Number</label>
+                                <input type="text" name="phone_number" id="phone_number" required
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">PAN Number</label>
+                                <input type="text" name="pan_number" id="pan_number"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Email</label>
+                                <input type="email" name="email" id="email"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Place of Supply</label>
+                                <input type="text" name="place_of_supply" id="place_of_supply"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Type of Supply</label>
+                                <select name="type_of_supply" x-model="type_of_supply"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                               focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                                    <option value="Intra-State">Intra-State</option>
+                                    <option value="Inter-State">Inter-State</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">GST Type</label>
+                                <select name="gst_type" x-model="gst_type"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                               focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                                    <option value="Unregistered_Consumer">Unregistered/Consumer</option>
+                                    <option value="Registered_Business_Regular">Registered Business - Regular</option>
+                                    <option value="Registered_Business_Composition">Registered Business - Composition</option>
+                                </select>
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Status</label>
+                                <select name="status" x-model="status"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                               focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                                    <option value="enable">Enable</option>
+                                    <option value="disable">Disable</option>
+                                    <option value="hold">Hold</option>
+                                    <option value="black_list">Black List</option>
+                                </select>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 2: Address -->
+                <div x-show="step === 2" x-transition>
+                    <div class="p-6 border rounded-xl space-y-6 bg-gray-50">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">
+                            <i class="fas fa-map-marker-alt mr-2 text-indigo-600"></i>
+                            Address & Contact
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-3 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 required">Pincode</label>
+                                <input type="text" name="pincode" id="pincode" required
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">State</label>
+                                <input type="text" name="state" id="state"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">City</label>
+                                <input type="text" name="city" id="city"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Billing Address</label>
+                            <textarea name="billing_address" id="billing_address" rows="3"
+                                      class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                             focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Shipping Address</label>
+                            <textarea name="shipping_address" id="shipping_address" rows="3"
+                                      class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                             focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1"></textarea>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 3: Finance -->
+                <div x-show="step === 3" x-transition>
+                    <div class="p-6 border rounded-xl space-y-6 bg-gray-50">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">
+                            <i class="fas fa-money-bill-wave mr-2 text-indigo-600"></i>
+                            Financial Details
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700 required">Opening Balance</label>
+                                <input type="number" step="0.01" name="opening_balance" id="opening_balance" required
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Opening Balance Type</label>
+                                <select name="opening_balance_type" x-model="opening_balance_type"
+                                        class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                               focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                                    <option value="Debit">Debit (Receivable)</option>
+                                    <option value="Credit">Credit (Payable)</option>
+                                </select>
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">As of Date</label>
+                                <input type="date" name="as_of_date" id="as_of_date"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Payment Terms</label>
+                                <input type="text" name="payment_terms" id="payment_terms"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Credit Limit</label>
+                            <div class="flex items-center space-4">
+                                <label class="inline-flex items-center mr-6">
+                                    <input type="radio" name="credit_limit" value="off" x-model="credit_limit" class="form-radio h-4 w-4 text-indigo-600">
+                                    <span class="ml-2">OFF</span>
+                                </label>
+                                <label class="inline-flex items-center">
+                                    <input type="radio" name="credit_limit" value="on" x-model="credit_limit" class="form-radio h-4 w-4 text-indigo-600">
+                                    <span class="ml-2">ON</span>
+                                </label>
+                            </div>
+                        </div>
+
+                        <div x-show="credit_limit === 'on'">
+                            <label class="block text-sm font-medium text-gray-700">Credit Limit Amount</label>
+                            <input type="number" step="0.01" name="credit_limit_amount" id="credit_limit_amount"
+                                   class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                          focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                        </div>
+                    </div>
+                </div>
+
+                <!-- STEP 4: Bank -->
+                <div x-show="step === 4" x-transition>
+                    <div class="p-6 border rounded-xl space-y-6 bg-gray-50">
+                        <h3 class="text-lg font-semibold text-gray-700 border-b pb-2">
+                            <i class="fas fa-university mr-2 text-indigo-600"></i>
+                            Bank Details & Notes
+                        </h3>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Bank Name</label>
+                                <input type="text" name="bank_name" id="bank_name"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Account Number</label>
+                                <input type="text" name="account_number" id="account_number"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                        </div>
+
+                        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">IFSC Code</label>
+                                <input type="text" name="ifsc_code" id="ifsc_code"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                            <div>
+                                <label class="block text-sm font-medium text-gray-700">Branch</label>
+                                <input type="text" name="branch" id="branch"
+                                       class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                              focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1">
+                            </div>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700">Notes</label>
+                            <textarea name="notes" id="notes" rows="4"
+                                      class="w-full rounded-md border border-gray-300 px-4 py-3 shadow-sm focus:border-indigo-500 
+                                             focus:ring focus:ring-indigo-200 focus:ring-opacity-50 mt-1"></textarea>
+                        </div>
+
+                        <div>
+                            <label class="block text-sm font-medium text-gray-700 mb-2">Upload Documents</label>
+                            <div class="mt-1 flex justify-center px-6 pt-5 pb-6 border-2 border-gray-300 border-dashed rounded-md">
+                                <div class="space-y-1 text-center">
+                                    <div class="flex text-sm text-gray-600">
+                                        <label for="file-upload" class="relative cursor-pointer bg-white rounded-md font-medium text-indigo-600 hover:text-indigo-500 focus-within:outline-none">
+                                            <span>Upload files</span>
+                                            <input id="file-upload" name="file-upload" type="file" class="sr-only" multiple>
+                                        </label>
+                                        <p class="pl-1">or drag and drop</p>
+                                    </div>
+                                    <p class="text-xs text-gray-500">PNG, JPG, PDF up to 10MB</p>
+                                </div>
+                            </div>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Navigation -->
+                <div class="flex justify-between pt-6">
+                    <button type="button" @click="prevStep" 
+                            x-show="step > 1"
+                            class="px-5 py-2.5 rounded-lg bg-gray-200 hover:bg-gray-300 text-gray-700 transition-colors flex items-center">
+                        <i class="fas fa-arrow-left mr-2"></i> Previous
+                    </button>
+                    <button type="button" @click="nextStep" 
+                            x-show="step < 4"
+                            class="ml-auto px-5 py-2.5 rounded-lg bg-indigo-600 text-white hover:bg-indigo-700 transition-colors flex items-center">
+                        Next <i class="fas fa-arrow-right ml-2"></i>
+                    </button>
+                    <button type="submit" 
+                            x-show="step === 4"
+                            class="ml-auto px-6 py-2.5 rounded-lg bg-green-600 text-white hover:bg-green-700 transition-colors flex items-center">
+                        <i class="fas fa-save mr-2"></i> Save Party Details
+                    </button>
+                </div>
+            </form>
         </div>
-
-        <div class="panel-body">
-
-          <form method="POST" action="{{ route("admin.party-details.store") }}" enctype="multipart/form-data" id="partyForm">
-            @csrf
-
-            {{-- stepper visual --}}
-            <div class="stepper">
-              <div class="d-flex align-items-center">
-                <div class="step-circle active" data-step="1">1</div>
-                <div class="step-label" style="margin-left:8px">Basic</div>
-              </div>
-              <div class="d-flex align-items-center">
-                <div class="step-circle" data-step="2">2</div>
-                <div class="step-label" style="margin-left:8px">Address</div>
-              </div>
-              <div class="d-flex align-items-center">
-                <div class="step-circle" data-step="3">3</div>
-                <div class="step-label" style="margin-left:8px">Finance</div>
-              </div>
-              <div class="d-flex align-items-center">
-                <div class="step-circle" data-step="4">4</div>
-                <div class="step-label" style="margin-left:8px">Bank / Notes</div>
-              </div>
-            </div>
-
-            <div class="progress-line"><i id="progressBar"></i></div>
-
-            {{-- STEP 1: Basic Info --}}
-            <div class="step active" data-step="1">
-              <div class="step-card">
-                <h4 class="m-b-10">Basic Information</h4>
-
-                <div class="form-group {{ $errors->has('party_name') ? 'has-error' : '' }}">
-                  <label class="required" for="party_name">{{ trans('cruds.partyDetail.fields.party_name') }}</label>
-                  <input class="form-control" type="text" name="party_name" id="party_name" value="{{ old('party_name', '') }}" required>
-                  @if($errors->has('party_name'))
-                    <span class="help-block" role="alert">{{ $errors->first('party_name') }}</span>
-                  @endif
-                  <span class="help-block">{{ trans('cruds.partyDetail.fields.party_name_helper') }}</span>
-                </div>
-
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group {{ $errors->has('gstin') ? 'has-error' : '' }}">
-                      <label class="required" for="gstin">{{ trans('cruds.partyDetail.fields.gstin') }}</label>
-                      <input class="form-control" type="text" name="gstin" id="gstin" value="{{ old('gstin', '') }}" required>
-                      @if($errors->has('gstin'))
-                        <span class="help-block" role="alert">{{ $errors->first('gstin') }}</span>
-                      @endif
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="form-group {{ $errors->has('phone_number') ? 'has-error' : '' }}">
-                      <label class="required" for="phone_number">{{ trans('cruds.partyDetail.fields.phone_number') }}</label>
-                      <input class="form-control" type="text" name="phone_number" id="phone_number" value="{{ old('phone_number', '') }}" required>
-                      @if($errors->has('phone_number'))
-                        <span class="help-block" role="alert">{{ $errors->first('phone_number') }}</span>
-                      @endif
-                    </div>
-                  </div>
-                </div>
-
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group {{ $errors->has('pan_number') ? 'has-error' : '' }}">
-                      <label for="pan_number">{{ trans('cruds.partyDetail.fields.pan_number') }}</label>
-                      <input class="form-control" type="text" name="pan_number" id="pan_number" value="{{ old('pan_number', '') }}">
-                      @if($errors->has('pan_number'))
-                        <span class="help-block" role="alert">{{ $errors->first('pan_number') }}</span>
-                      @endif
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="form-group {{ $errors->has('type_of_supply') ? 'has-error' : '' }}">
-                      <label>{{ trans('cruds.partyDetail.fields.type_of_supply') }}</label>
-                      <select class="form-control" name="type_of_supply" id="type_of_supply">
-                        <option value disabled {{ old('type_of_supply', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
-                        @foreach(App\Models\PartyDetail::TYPE_OF_SUPPLY_SELECT as $key => $label)
-                          <option value="{{ $key }}" {{ old('type_of_supply', '--select type--') === (string) $key ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                      </select>
-                      @if($errors->has('type_of_supply'))
-                        <span class="help-block" role="alert">{{ $errors->first('type_of_supply') }}</span>
-                      @endif
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-group {{ $errors->has('gst_type') ? 'has-error' : '' }}">
-                  <label>{{ trans('cruds.partyDetail.fields.gst_type') }}</label>
-                  <select class="form-control" name="gst_type" id="gst_type">
-                    <option value disabled {{ old('gst_type', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
-                    @foreach(App\Models\PartyDetail::GST_TYPE_SELECT as $key => $label)
-                      <option value="{{ $key }}" {{ old('gst_type', '--select type--') === (string) $key ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                  </select>
-                  @if($errors->has('gst_type'))
-                    <span class="help-block" role="alert">{{ $errors->first('gst_type') }}</span>
-                  @endif
-                </div>
-
-              </div>
-            </div>
-
-            {{-- STEP 2: Address --}}
-            <div class="step" data-step="2">
-              <div class="step-card">
-                <h4 class="m-b-10">Address & Contact</h4>
-
-                <div class="row">
-                  <div class="col-md-4">
-                    <div class="form-group {{ $errors->has('pincode') ? 'has-error' : '' }}">
-                      <label class="required" for="pincode">{{ trans('cruds.partyDetail.fields.pincode') }}</label>
-                      <input class="form-control" type="text" name="pincode" id="pincode" value="{{ old('pincode', '') }}" required>
-                      @if($errors->has('pincode'))
-                        <span class="help-block" role="alert">{{ $errors->first('pincode') }}</span>
-                      @endif
-                    </div>
-                  </div>
-
-                  <div class="col-md-4">
-                    <div class="form-group {{ $errors->has('state') ? 'has-error' : '' }}">
-                      <label for="state">{{ trans('cruds.partyDetail.fields.state') }}</label>
-                      <input class="form-control" type="text" name="state" id="state" value="{{ old('state', '') }}">
-                      @if($errors->has('state'))
-                        <span class="help-block" role="alert">{{ $errors->first('state') }}</span>
-                      @endif
-                    </div>
-                  </div>
-
-                  <div class="col-md-4">
-                    <div class="form-group {{ $errors->has('city') ? 'has-error' : '' }}">
-                      <label for="city">{{ trans('cruds.partyDetail.fields.city') }}</label>
-                      <input class="form-control" type="text" name="city" id="city" value="{{ old('city', '') }}">
-                      @if($errors->has('city'))
-                        <span class="help-block" role="alert">{{ $errors->first('city') }}</span>
-                      @endif
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-group {{ $errors->has('billing_address') ? 'has-error' : '' }}">
-                  <label for="billing_address">{{ trans('cruds.partyDetail.fields.billing_address') }}</label>
-                  <textarea class="form-control ckeditor" name="billing_address" id="billing_address">{!! old('billing_address') !!}</textarea>
-                  @if($errors->has('billing_address'))
-                    <span class="help-block" role="alert">{{ $errors->first('billing_address') }}</span>
-                  @endif
-                </div>
-
-                <div class="form-group {{ $errors->has('shipping_address') ? 'has-error' : '' }}">
-                  <label for="shipping_address">{{ trans('cruds.partyDetail.fields.shipping_address') }}</label>
-                  <textarea class="form-control ckeditor" name="shipping_address" id="shipping_address">{!! old('shipping_address') !!}</textarea>
-                  @if($errors->has('shipping_address'))
-                    <span class="help-block" role="alert">{{ $errors->first('shipping_address') }}</span>
-                  @endif
-                </div>
-
-                <div class="form-group {{ $errors->has('email') ? 'has-error' : '' }}">
-                  <label for="email">{{ trans('cruds.partyDetail.fields.email') }}</label>
-                  <input class="form-control" type="email" name="email" id="email" value="{{ old('email') }}">
-                  @if($errors->has('email'))
-                    <span class="help-block" role="alert">{{ $errors->first('email') }}</span>
-                  @endif
-                </div>
-
-              </div>
-            </div>
-
-            {{-- STEP 3: Finance --}}
-            <div class="step" data-step="3">
-              <div class="step-card">
-                <h4 class="m-b-10">Financial Details</h4>
-
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group {{ $errors->has('opening_balance') ? 'has-error' : '' }}">
-                      <label class="required" for="opening_balance">{{ trans('cruds.partyDetail.fields.opening_balance') }}</label>
-                      <input class="form-control" type="number" name="opening_balance" id="opening_balance" value="{{ old('opening_balance', '') }}" step="0.01" required>
-                      @if($errors->has('opening_balance'))
-                        <span class="help-block" role="alert">{{ $errors->first('opening_balance') }}</span>
-                      @endif
-                    </div>
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="form-group {{ $errors->has('as_of_date') ? 'has-error' : '' }}">
-                      <label for="as_of_date">{{ trans('cruds.partyDetail.fields.as_of_date') }}</label>
-                      <input class="form-control date" type="text" name="as_of_date" id="as_of_date" value="{{ old('as_of_date') }}">
-                      @if($errors->has('as_of_date'))
-                        <span class="help-block" role="alert">{{ $errors->first('as_of_date') }}</span>
-                      @endif
-                    </div>
-                  </div>
-                </div>
-
-                <div class="form-group {{ $errors->has('opening_balance_type') ? 'has-error' : '' }}">
-                  <label>{{ trans('cruds.partyDetail.fields.opening_balance_type') }}</label>
-                  <select class="form-control" name="opening_balance_type" id="opening_balance_type">
-                    <option value disabled {{ old('opening_balance_type', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
-                    @foreach(App\Models\PartyDetail::OPENING_BALANCE_TYPE_SELECT as $key => $label)
-                      <option value="{{ $key }}" {{ old('opening_balance_type', '--select type--') === (string) $key ? 'selected' : '' }}>{{ $label }}</option>
-                    @endforeach
-                  </select>
-                  @if($errors->has('opening_balance_type'))
-                    <span class="help-block" role="alert">{{ $errors->first('opening_balance_type') }}</span>
-                  @endif
-                </div>
-
-                <div class="form-group {{ $errors->has('credit_limit') ? 'has-error' : '' }}">
-                  <label class="required">{{ trans('cruds.partyDetail.fields.credit_limit') }}</label>
-                  @foreach(App\Models\PartyDetail::CREDIT_LIMIT_RADIO as $key => $label)
-                    <div>
-                      <input type="radio" id="credit_limit_{{ $key }}" name="credit_limit" value="{{ $key }}" {{ old('credit_limit', 'Off') === (string) $key ? 'checked' : '' }} required>
-                      <label for="credit_limit_{{ $key }}" style="font-weight: 400">{{ $label }}</label>
-                    </div>
-                  @endforeach
-                  @if($errors->has('credit_limit'))
-                    <span class="help-block" role="alert">{{ $errors->first('credit_limit') }}</span>
-                  @endif
-                </div>
-
-                <div class="form-group {{ $errors->has('credit_limit_amount') ? 'has-error' : '' }}">
-                  <label for="credit_limit_amount">{{ trans('cruds.partyDetail.fields.credit_limit_amount') }}</label>
-                  <input class="form-control" type="number" name="credit_limit_amount" id="credit_limit_amount" value="{{ old('credit_limit_amount', '') }}" step="0.01">
-                  @if($errors->has('credit_limit_amount'))
-                    <span class="help-block" role="alert">{{ $errors->first('credit_limit_amount') }}</span>
-                  @endif
-                </div>
-
-                <div class="form-group {{ $errors->has('payment_terms') ? 'has-error' : '' }}">
-                  <label for="payment_terms">{{ trans('cruds.partyDetail.fields.payment_terms') }}</label>
-                  <input class="form-control" type="text" name="payment_terms" id="payment_terms" value="{{ old('payment_terms', '') }}">
-                  @if($errors->has('payment_terms'))
-                    <span class="help-block" role="alert">{{ $errors->first('payment_terms') }}</span>
-                  @endif
-                </div>
-
-              </div>
-            </div>
-
-            {{-- STEP 4: Bank, Notes & Submit --}}
-            <div class="step" data-step="4">
-              <div class="step-card">
-                <h4 class="m-b-10">Bank Details & Notes</h4>
-
-                <div class="row">
-                  <div class="col-md-6">
-                    <div class="form-group {{ $errors->has('ifsc_code') ? 'has-error' : '' }}">
-                      <label for="ifsc_code">{{ trans('cruds.partyDetail.fields.ifsc_code') }}</label>
-                      <input class="form-control" type="text" name="ifsc_code" id="ifsc_code" value="{{ old('ifsc_code', '') }}">
-                      @if($errors->has('ifsc_code'))
-                        <span class="help-block" role="alert">{{ $errors->first('ifsc_code') }}</span>
-                      @endif
-                    </div>
-
-                    <div class="form-group {{ $errors->has('account_number') ? 'has-error' : '' }}">
-                      <label for="account_number">{{ trans('cruds.partyDetail.fields.account_number') }}</label>
-                      <input class="form-control" type="text" name="account_number" id="account_number" value="{{ old('account_number', '') }}">
-                      @if($errors->has('account_number'))
-                        <span class="help-block" role="alert">{{ $errors->first('account_number') }}</span>
-                      @endif
-                    </div>
-
-                    <div class="form-group {{ $errors->has('bank_name') ? 'has-error' : '' }}">
-                      <label for="bank_name">{{ trans('cruds.partyDetail.fields.bank_name') }}</label>
-                      <input class="form-control" type="text" name="bank_name" id="bank_name" value="{{ old('bank_name', '') }}">
-                      @if($errors->has('bank_name'))
-                        <span class="help-block" role="alert">{{ $errors->first('bank_name') }}</span>
-                      @endif
-                    </div>
-
-                    <div class="form-group {{ $errors->has('branch') ? 'has-error' : '' }}">
-                      <label for="branch">{{ trans('cruds.partyDetail.fields.branch') }}</label>
-                      <input class="form-control" type="text" name="branch" id="branch" value="{{ old('branch', '') }}">
-                      @if($errors->has('branch'))
-                        <span class="help-block" role="alert">{{ $errors->first('branch') }}</span>
-                      @endif
-                    </div>
-
-                  </div>
-
-                  <div class="col-md-6">
-                    <div class="form-group {{ $errors->has('notes') ? 'has-error' : '' }}">
-                      <label for="notes">{{ trans('cruds.partyDetail.fields.notes') }}</label>
-                      <textarea class="form-control ckeditor" name="notes" id="notes">{!! old('notes') !!}</textarea>
-                      @if($errors->has('notes'))
-                        <span class="help-block" role="alert">{{ $errors->first('notes') }}</span>
-                      @endif
-                    </div>
-
-                    <div class="form-group {{ $errors->has('status') ? 'has-error' : '' }}">
-                      <label>{{ trans('cruds.partyDetail.fields.status') }}</label>
-                      <select class="form-control" name="status" id="status">
-                        <option value disabled {{ old('status', null) === null ? 'selected' : '' }}>{{ trans('global.pleaseSelect') }}</option>
-                        @foreach(App\Models\PartyDetail::STATUS_SELECT as $key => $label)
-                          <option value="{{ $key }}" {{ old('status', '--Select Type--') === (string) $key ? 'selected' : '' }}>{{ $label }}</option>
-                        @endforeach
-                      </select>
-                      @if($errors->has('status'))
-                        <span class="help-block" role="alert">{{ $errors->first('status') }}</span>
-                      @endif
-                    </div>
-
-                    <div class="well well-sm">
-                      <p class="small-muted">Review values before you submit. You can go back to edit any step.</p>
-                      <ul class="small-muted" id="reviewList">
-                        <!-- JS will populate a quick review summary -->
-                      </ul>
-                    </div>
-
-                  </div>
-                </div>
-
-                <div class="form-group">
-                  <button class="btn btn-danger" type="submit" id="submitBtn">
-                    {{ trans('global.save') }}
-                  </button>
-                </div>
-
-              </div>
-            </div>
-
-            {{-- Navigation --}}
-            <div class="wizard-footer">
-              <div>
-                <button type="button" class="btn btn-default" id="prevBtn">&laquo; Previous</button>
-              </div>
-              <div>
-                <button type="button" class="btn btn-primary" id="nextBtn">Next &raquo;</button>
-              </div>
-            </div>
-
-          </form>
-
-        </div>
-      </div>
     </div>
-  </div>
-</div>
-@endsection
 
+    <script>
+        // Simple form validation for required fields
+        document.addEventListener('alpine:initialized', () => {
+            // You can add additional validation logic here if needed
+        });
+    </script>
+</body>
+</html>
 @section('scripts')
 <script>
-$(function(){
-  var totalSteps = 4;
-  var current = 1;
-
-  function setStep(step){
-    current = Number(step);
-    $('.step').removeClass('active');
-    $('.step[data-step="'+step+'"]').addClass('active');
-    $('.step-circle').removeClass('active');
-    $('.step-circle[data-step="'+step+'"]').addClass('active');
-    $('#currentStep').text(step);
-
-    var percent = ((step-1)/(totalSteps-1))*100;
-    $('#progressBar').css('width', percent + '%');
-
-    // Prev/Next button visibility
-    if(step <= 1){ $('#prevBtn').hide(); } else { $('#prevBtn').show(); }
-    if(step >= totalSteps){ $('#nextBtn').hide(); } else { $('#nextBtn').show(); }
-
-    // Populate review on final step
-    if(step == totalSteps){ populateReview(); }
-  }
-
-  function validateStep(step){
-    var valid = true;
-    var $step = $('.step[data-step="'+step+'"]');
-    $step.find('[required]').each(function(){
-      var $el = $(this);
-      if($el.is(':checkbox') || $el.is(':radio')){
-        var name = $el.attr('name');
-        if($('[name="'+name+'"]:checked').length === 0){ valid = false; $el.addClass('is-invalid'); }
-        else{ $el.removeClass('is-invalid'); }
-      } else {
-        if(!$el.val() || $el.val().toString().trim() === ''){ valid = false; $el.addClass('is-invalid'); }
-        else{ $el.removeClass('is-invalid'); }
-      }
-    });
-    return valid;
-  }
-
-  function populateReview(){
-    var review = $('#reviewList');
-    review.empty();
-    var addItem = function(label, val){ review.append('<li><strong>'+label+':</strong> '+(val?val:'-')+'</li>'); };
-
-    addItem('Party name', $('#party_name').val());
-    addItem('GSTIN', $('#gstin').val());
-    addItem('Phone', $('#phone_number').val());
-    addItem('Pincode', $('#pincode').val());
-    addItem('City', $('#city').val());
-    addItem('Opening balance', $('#opening_balance').val());
-    addItem('Credit limit', $('[name="credit_limit"]:checked').val());
-    addItem('Bank', $('#bank_name').val());
-  }
-
-  // Next button
-  $('#nextBtn').on('click', function(){
-    if(validateStep(current)){
-      if(current < totalSteps) setStep(current + 1);
-    } else {
-      // shake current panel to indicate error
-      var $panel = $('.step[data-step="'+current+'"] .step-card');
-      $panel.addClass('animated shake');
-      setTimeout(function(){ $panel.removeClass('animated shake'); }, 600);
-    }
-  });
-
-  // Prev button
-  $('#prevBtn').on('click', function(){ if(current > 1) setStep(current - 1); });
-
-  // Jump to step when clicking step circle (optional)
-  $('.step-circle').on('click', function(){ var step = $(this).data('step'); setStep(step); });
-
-  // On page load: if server-side validation errors exist, open the first step that has an error
-  var $firstError = $('.has-error').first();
-  if($firstError.length){
-    var $errorStep = $firstError.closest('.step');
-    if($errorStep.length){ var step = $errorStep.data('step'); setStep(step); }
-  } else {
-    setStep(1);
-  }
-
-  // Initialize datepicker if available
-  if($.fn.datetimepicker){ $('.date').datetimepicker({ format: 'YYYY-MM-DD' }); }
-
-  // Simple client-side UX: remove invalid class on input change
-  $(document).on('input change', 'input, select, textarea', function(){ $(this).removeClass('is-invalid'); });
-
-  // When form is submitted, ensure all steps valid (final safeguard)
-  $('#partyForm').on('submit', function(e){
-    var allValid = true;
-    for(var s=1; s<=totalSteps; s++){
-      if(!validateStep(s)){
-        allValid = false; setStep(s); break;
-      }
-    }
-    if(!allValid){ e.preventDefault(); }
-  });
-
-});
-</script>
-
-{{-- CKEditor upload adapter (same as before) --}}
-<script>
-document.addEventListener('DOMContentLoaded', function () {
-  function SimpleUploadAdapter(editor) {
-    editor.plugins.get('FileRepository').createUploadAdapter = function(loader) {
-      return {
-        upload: function() {
-          return loader.file
-            .then(function (file) {
-              return new Promise(function(resolve, reject) {
-                var xhr = new XMLHttpRequest();
-                xhr.open('POST', '{{ route('admin.party-details.storeCKEditorImages') }}', true);
-                xhr.setRequestHeader('x-csrf-token', window._token);
-                xhr.setRequestHeader('Accept', 'application/json');
-                xhr.responseType = 'json';
-
-                var genericErrorText = `Couldn't upload file: ${ file.name }.`;
-                xhr.addEventListener('error', function() { reject(genericErrorText) });
-                xhr.addEventListener('abort', function() { reject() });
-                xhr.addEventListener('load', function() {
-                  var response = xhr.response;
-
-                  if (!response || xhr.status !== 201) {
-                    return reject(response && response.message ? `${genericErrorText}\n${xhr.status} ${response.message}` : `${genericErrorText}\n ${xhr.status} ${xhr.statusText}`);
-                  }
-
-                  $('form').append('<input type="hidden" name="ck-media[]" value="' + response.id + '">');
-
-                  resolve({ default: response.url });
-                });
-
-                if (xhr.upload) {
-                  xhr.upload.addEventListener('progress', function(e) {
-                    if (e.lengthComputable) {
-                      loader.uploadTotal = e.total;
-                      loader.uploaded = e.loaded;
-                    }
-                  });
-                }
-
-                var data = new FormData();
-                data.append('upload', file);
-                data.append('crud_id', '{{ $partyDetail->id ?? 0 }}');
-                xhr.send(data);
-              });
-            })
+function wizardForm() {
+    return {
+        step: 1,
+        nextStep() {
+            if(this.step < 4) this.step++;
+        },
+        prevStep() {
+            if(this.step > 1) this.step--;
         }
-      };
     }
-  }
-
-  var allEditors = document.querySelectorAll('.ckeditor');
-  for (var i = 0; i < allEditors.length; ++i) {
-    ClassicEditor.create(
-      allEditors[i], {
-        extraPlugins: [SimpleUploadAdapter]
-      }
-    );
-  }
-});
+}
 </script>
-
 @endsection
